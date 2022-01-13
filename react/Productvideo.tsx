@@ -1,11 +1,12 @@
 import React from 'react'
-import { useProduct } from 'vtex.product-context'
+import { useProduct, ProductContext } from 'vtex.product-context'
 import { Video } from 'vtex.store-video'
 import { useCssHandles } from 'vtex.css-handles'
 
 interface ProductvideoProps {
   specification?: string
   fallbackvideo?: string
+  group?: string
   name?: string
   description?: string,
   type?: string,
@@ -22,6 +23,7 @@ interface ProductvideoProps {
   VolumeOnIcon?: string,
   VoluemOffIcon?: string,
   FullscreenIcon?: string,
+  blockClass?: string
   
 
 }
@@ -36,6 +38,7 @@ const CSS_HANDLES = [
 const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
   { specification = "", 
     fallbackvideo = "",
+    group = "",
     name = undefined,
     description = undefined,
     type = undefined,
@@ -52,33 +55,69 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
     VolumeOnIcon = "icon-volume",
     VoluemOffIcon = "icon-volume-off",
     FullscreenIcon = "icon-extend",
+    blockClass= ""
     
   }
   
   ) => {
 
-  const  handles  = useCssHandles(CSS_HANDLES)
+    const  handles = useCssHandles(CSS_HANDLES, blockClass)
 
   const productContextValue = useProduct();
-  var video=loadField();
-
+  const {product} = useProduct();
+  console.log(product);
+  console.log("zeh grupp");
+  console.log(ProductContext)
+  let video=loadField();
+  console.log("video filed loaded:");
+  console.log(video); 
+  function joinDOM(){
+    if(typeof video[0] == "undefined") return "";
+    else return video[0];
+  }
 
   function loadField(){
-    var output='';
-    if(specification>=""){
-
-      var fields= productContextValue.product?.properties || false;
+    var output=[];
+    if(specification>="" && group >=""){
+      //console.log("all specs");
+      //console.log(productContextValue);
+      var groups= productContextValue.product?.specificationGroups || false;
       
-      if(fields){
+      if(groups && groups.length>0){
+        //console.log("groups:");
+        //console.log(groups);
+        for(var i=0; i<groups.length; i++){
+          //finding the field in the groups
+          if(groups[i].originalName != group) continue;
 
-        for(var i=0; i<fields.length; i++){
+          for(var j=0; j<groups[i].specifications.length; j++){
+            if(groups[i].specifications[j].originalName != specification) continue; //not ours? skip!
 
-          if(fields[i].name==specification && fields[i].values.length>0){
-            
-            output=fields[i].values[0];
+            output=groups[i].specifications[j].values; 
+           // console.log("JACKPOT!");
+           // console.log(output);
             break;
           }
+          break;
+          /*if(fields[i].name==specification && fields[i].values.length>0){
+            console.log("found field: " + specification)
+            
+            output=fields[i].values[0];
+            console.log("found value: " + output)
+            break;
+          }*/
         }
+      }else { //we couldnt find groups, lets try to load the field individually.
+        var fields = productContextValue.product?.properties;
+        if(fields.length>0){
+          for(var i=0; i<fields.length; i++){
+            if(fields[i].name==specification){
+              return fields[i].values
+              
+            } else continue;
+          }
+        }
+
       }
     }
     return output;
@@ -94,9 +133,13 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
 
   function buildDom(){
     fallbackvideo = (typeof fallbackvideo == "undefined" ? "" : fallbackvideo);
-    video = (typeof video == "undefined" ? "" : video);
+    var zvideo=joinDOM();
+    //console.log(zvideo);
+    video = (typeof zvideo == "undefined" ? "" : zvideo);
     if(fallbackvideo.trim()<='' && video.trim() <='' ){
       console.log("no video found - hide ");
+      console.log(fallbackvideo);
+      console.log(video);
       return <div className={handles.containerEmpty} ></div>;
     }
     else{
