@@ -35,6 +35,11 @@ you will need to select the group name the specification is stored in. (otherwis
     }
   }
 ```
+
+
+## BONUS 👌💕
+You can use any prop that you find on the [VTEX store Video](https://developers.vtex.com/vtex-developer-docs/docs/vtex-store-video) App, except for the VideoURL itself (Src).
+
 ## CSS handles
 The following CSS handles can be used for styling:
 
