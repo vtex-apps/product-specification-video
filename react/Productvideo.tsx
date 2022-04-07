@@ -63,7 +63,7 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
     FullscreenIcon = "icon-extend",
     blockClass= "",
     format="16:9",
-    overlay= false
+    overlay= false  
     
   }
   
