@@ -3,6 +3,7 @@ import { useProduct, ProductContext } from 'vtex.product-context'
 import { Video } from 'vtex.store-video'
 import { useCssHandles } from 'vtex.css-handles'
 
+
 interface ProductvideoProps {
   specification?: string
   fallbackvideo?: string
@@ -24,6 +25,8 @@ interface ProductvideoProps {
   VoluemOffIcon?: string,
   FullscreenIcon?: string,
   blockClass?: string
+  format: string,
+  overlay: boolean
   
 
 }
@@ -31,8 +34,11 @@ interface ProductvideoProps {
 const CSS_HANDLES = [
   
   'containerEmpty',
-  'videoContainer'
-,
+  'videoContainer',
+  'overlay',
+  'noOverlay',
+  'fourByThree',
+  'sixteenByNine',
 ] as const
 
 const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
@@ -55,22 +61,21 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
     VolumeOnIcon = "icon-volume",
     VoluemOffIcon = "icon-volume-off",
     FullscreenIcon = "icon-extend",
-    blockClass= ""
+    blockClass= "",
+    format="16:9",
+    overlay= false
     
   }
   
   ) => {
 
-    const  handles = useCssHandles(CSS_HANDLES, blockClass)
+    const { handles }= useCssHandles(CSS_HANDLES, blockClass)
 
   const productContextValue = useProduct();
   const {product} = useProduct();
-  console.log(product);
-  console.log("zeh grupp");
-  console.log(ProductContext)
+
   let video=loadField();
-  console.log("video filed loaded:");
-  console.log(video); 
+
   function joinDOM(){
     if(typeof video[0] == "undefined") return "";
     else return video[0];
@@ -79,11 +84,10 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
   function loadField(){
     var output=[];
     if(specification>="" && group >=""){
-      //console.log("all specs");
-      //console.log(productContextValue);
-      var groups= productContextValue.product?.specificationGroups || false;
+
+      var groups= productContextValue?.product?.specificationGroups || false;
       
-      if(groups && groups.length>0){
+      if(typeof groups == "object" && groups.length>0){
         //console.log("groups:");
         //console.log(groups);
         for(var i=0; i<groups.length; i++){
@@ -109,7 +113,7 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
         }
       }else { //we couldnt find groups, lets try to load the field individually.
         var fields = productContextValue.product?.properties;
-        if(fields.length>0){
+        if(typeof fields == "object" && fields.length>0){
           for(var i=0; i<fields.length; i++){
             if(fields[i].name==specification){
               return fields[i].values
@@ -137,16 +141,17 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
     //console.log(zvideo);
     video = (typeof zvideo == "undefined" ? "" : zvideo);
     if(fallbackvideo.trim()<='' && video.trim() <='' ){
-      console.log("no video found - hide ");
-      console.log(fallbackvideo);
-      console.log(video);
+
       return <div className={handles.containerEmpty} ></div>;
     }
     else{
       var finalvideo =( video.trim()>'' ? video : fallbackvideo);
-      
+
+      let classnames=handles.VideoContainer//[handles.VideoContainer, FM].join(" ");
+      console.log(classnames)
+      console.log(handles)
       return (
-        <div className={handles.videoContainer}>
+        <div className={classnames}>
           <Video name={name}
             description={description}
             type={type}
@@ -166,6 +171,7 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
             
             src={finalvideo}
             />
+          <div className={overlay==true ? handles.overlay : handles.noOverlay} />
         </div>
       )
       
@@ -176,7 +182,8 @@ const Productvideo: StorefrontFunctionComponent<ProductvideoProps> = (
   
   
 //<h3><button onClick={activateProductContext} >click me</button></h3>
-  return ( <div>
+const FM=(format == "4:3" ?  handles.fourByThree : handles.sixteenByNine);
+  return ( <div className={FM}>
     {buildDom()}
   </div> )
 }
